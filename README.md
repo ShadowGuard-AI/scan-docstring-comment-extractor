@@ -2,7 +2,11 @@
 
 ### Description
 
-scan-Docstring-Comment-Extractor is a tool for extracting and formatting code docstrings into a more uniform Markdown style. This tool is focused on providing functionality for analyzing source code to identify potential security vulnerabilities. It accomplishes this by utilizing Python libraries such as mypy and Bandit to perform code analysis and security checks, enhancing the readability and accessibility of code documentation.
+scan-Docstring-Comment-Extractor is a tool for extracting and formatting code docstrings and comments into a more uniform Markdown style. Docstrings are taken from module, class, and function nodes with the `ast` module, each entry labelled with its owner. Hash comment blocks are collected with the `tokenize` module as their own entries, labelled as comments. Entries appear in source order, one numbered section and one fenced block per entry.
+
+This tool uses only the Python standard library. No third party packages are required, and `requirements.txt` states that instead of naming a package.
+
+A run that extracts nothing exits 1 with a nothing extracted status and writes no output file. A file that fails to parse exits 1 with a plain parse error line. The run also refuses at exit 1 when the resolved `--output-file` path equals the resolved `--file-path` path.
 
 ### Installation
 
@@ -21,9 +25,10 @@ python main.py [args]
 ### Command-Line Arguments
 
 * **-h, --help:** Displays the help message and exits.
-* **-i, --input:** Specifies the input file or directory containing the code to be analyzed.
-* **-o, --output:** Specifies the output file or directory to store the extracted docstrings.
-* **-f, --format:** Specifies the output format. Options include "markdown" and "json".
+* **--file-path:** Specifies the path to the Python file containing the docstrings to be extracted. Required.
+* **--output-file:** Specifies the path to the output Markdown file where the extracted docstrings will be saved. Required.
+* **--verbose:** Enables verbose output, providing additional information during the extraction process.
+* **--version:** Displays the version of the tool.
 
 ### Security Considerations
 
