@@ -50,16 +50,19 @@ def _docstring_entries(tree):
         for child in ast.iter_child_nodes(node):
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 owner = f"{prefix}{child.name}" if prefix else child.name
+                # get_docstring cleans the text: it expands tabs and strips the uniform indent. What lands in the Markdown is therefore not the docstring exactly as written in the source, which matters if a reader compares the two side by side.
                 doc = ast.get_docstring(child)
                 if doc:
                     kind = 'class docstring' if isinstance(child, ast.ClassDef) else 'function docstring'
                     entries.append({'owner': owner, 'kind': kind, 'text': doc, 'lineno': child.lineno})
+                # Only functions, async functions, and classes get an owner entry. A docstring shaped string sitting in an if block or assigned to a variable is invisible to this walk, however much it reads like documentation.
                 visit(child, f"{owner}.")
             else:
                 visit(child, prefix)
 
     module_doc = ast.get_docstring(tree)
     if module_doc:
+        # The module entry is appended after the walk and carries a fixed line number of 1, then the sort in extract puts it first. A file that opens with a comment block before its docstring will show the module entry ahead of that earlier comment, because the sort is stable and the module line number is invented.
         entries.append({'owner': 'module', 'kind': 'module docstring', 'text': module_doc, 'lineno': 1})
     visit(tree, '')
     return entries
@@ -82,6 +85,7 @@ def _comment_entries(source):
         for tok in tokens:
             if tok.type == tokenize.COMMENT:
                 line_no = tok.start[0]
+                # A comment block is just consecutive lines. One blank line, or one line of code, splits what a person reads as one note into two entries, and a trailing comment on a code line starts a block of its own.
                 if block and last_line is not None and line_no == last_line + 1:
                     block.append(tok.string)
                 else:
@@ -121,7 +125,9 @@ def extract_docstrings(file_path):
         logger.error(f"Parse error in {file_path}: {e}")
         sys.exit(1)
 
+    # Docstrings and comments come from two different parses of the same text, ast for one and tokenize for the other, and neither knows about the other list. A hash line inside a docstring is never double counted, because tokenize treats the whole string as one token.
     entries = _docstring_entries(tree) + _comment_entries(source)
+    # Sorting is by first line only. A long docstring and a comment that sits inside its line range keep whatever order the sort leaves them in, so entries can interleave oddly in a dense file.
     entries.sort(key=lambda entry: entry['lineno'])
     return entries
 
@@ -168,6 +174,7 @@ def main():
     entries = extract_docstrings(file_path)
     logger.info(f"Extracted {len(entries)} entries")
 
+    # A file with no docstrings and no comments exits 1 and writes nothing. I would rather fail that way than leave an empty Markdown file that looks like a finished extraction.
     if not entries:
         logger.error("Nothing extracted: no docstrings or comments were found.")
         sys.exit(1)
