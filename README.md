@@ -11,15 +11,15 @@ A run that extracts nothing exits 1 with a nothing extracted status and writes n
 ### Installation
 
 ```
-git clone https://github.com/ShadowStrikeHQ/scan-Docstring-Comment-Extractor.git
-cd scan-Docstring-Comment-Extractor
+git clone https://github.com/ShadowGuard-AI/scan-docstring-comment-extractor.git
+cd scan-docstring-comment-extractor
 pip install -r requirements.txt
 ```
 
 ### Usage
 
 ```
-python main.py [args]
+python3 main.py --file-path <python_file> --output-file <output_file> [--verbose] [--version]
 ```
 
 ### Command-Line Arguments
@@ -38,4 +38,4 @@ python main.py [args]
 
 ### License
 
-This project is licensed under the GNU General Public License v3.0.
+This project is licensed under the GNU General Public License v3.0. See LICENSE.
